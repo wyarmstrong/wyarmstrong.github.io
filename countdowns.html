@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Countdown Timers with Neon Particle Trail</title>
+  <style>
+    body {
+      background: #1a1a1a;
+      font-family: 'Roboto Mono', monospace;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    nav {
+      background-color: #121212;
+      padding: 15px 30px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-evenly;
+      box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+      z-index: 100;
+    }
+
+    nav a {
+      color: #00ffff;
+      text-decoration: none;
+      font-size: 18px;
+      font-family: 'Montserrat', sans-serif;
+      transition: color 0.3s, transform 0.3s;
+    }
+
+    nav a:hover {
+      color: #ff00ff;
+      transform: scale(1.1);
+    }
+
+    .timer-section {
+      position: fixed;
+      top: 80px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 1;
+    }
+
+    .timer-container {
+      background: rgba(18, 18, 18, 0.8);
+      padding: 10px 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 255, 255, 0.5), 0 6px 25px rgba(255, 0, 255, 0.4);
+      width: 80%;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .countdown {
+      font-size: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px #00ffff, 0 0 15px #ff00ff;
+    }
+
+    .time-unit {
+      background: linear-gradient(135deg, #0ff, #f0f);
+      padding: 15px 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 255, 255, 0.5), 0 4px 12px rgba(255, 0, 255, 0.4);
+      font-size: 40px;
+      color: #000;
+      text-align: center;
+    }
+
+    .label {
+      font-size: 16px;
+      font-family: 'Montserrat', sans-serif;
+      color: #000;
+      margin-top: 5px;
+    }
+
+    .timer-label {
+      font-size: 24px;
+      color: #00ffff;
+      margin-bottom: 15px;
+      font-family: 'Roboto Mono', monospace;
+      text-shadow: 0 0 8px #00ffff, 0 0 15px #ff00ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    #fullscreenBtn {
+      position: fixed;
+      top: 50px;
+      right: 20px;
+      z-index: 101;
+      padding: 10px 20px;
+      background-color: #00ffff;
+      border: none;
+      color: #121212;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #fullscreenBtn:hover {
+      background-color: #ff00ff;
+      color: #ffffff;
+    }
+
+    #fullscreenClock {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 55px;
+      color: #00ffff;
+      font-family: 'Roboto Mono', monospace;
+      text-shadow: 0 0 8px #00ffff, 0 0 15px #ff00ff;
+      z-index: 102;
+      background: rgba(18, 18, 18, 0.9);
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="resources.html">Resources</a>
+    <a href="countdowns.html">Countdowns</a>
+    <a href="season-code.html">Season Code</a>
+  </nav>
+
+  <button id="fullscreenBtn">Fullscreen</button>
+
+  <div class="timer-section">
+    <div class="timer-container">
+      <div class="timer-label">Reveal Night</div>
+      <div id="revealNight" class="countdown"></div>
+    </div>
+    <div class="timer-container">
+      <div class="timer-label">Utah Regional</div>
+      <div id="utahRegional" class="countdown"></div>
+    </div>
+    <div class="timer-container">
+      <div class="timer-label">Idaho Regional</div>
+      <div id="idahoRegional" class="countdown"></div>
+    </div>
+  </div>
+
+  <canvas id="graphic"></canvas>
+
+  <script>
+    const canvas = document.getElementById("graphic");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particle = { x: canvas.width / 2, y: canvas.height / 2, radius: 5, color: "#00ffff", speed: 10 };
+    let hue = 0;
+
+    function drawParticle() {
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+      ctx.fillStyle = particle.color;
+      ctx.shadowColor = particle.color;
+      ctx.shadowBlur = 20;
+      ctx.fill();
+    }
+
+    function updateParticle() {
+      particle.x += (Math.random() - 0.5) * particle.speed * 10;
+      particle.y += (Math.random() - 0.5) * particle.speed * 10;
+      particle.x = Math.max(0, Math.min(canvas.width, particle.x));
+      particle.y = Math.max(0, Math.min(canvas.height, particle.y));
+      hue = (hue + 5) % 360;
+      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+      ctx.fillRect(particle.x - 2, particle.y - 2, 4, 4);
+    }
+
+    function animateParticle() {
+      drawParticle();
+      updateParticle();
+      requestAnimationFrame(animateParticle);
+    }
+
+    function updateCountdown(id, targetDate) {
+      setInterval(() => {
+        const now = Date.now();
+        const distance = targetDate - now;
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById(id).innerHTML = `
+          <div class="time-unit">${days}<span class="label">DAYS</span></div>
+          <div class="time-unit">${hours}<span class="label">HOURS</span></div>
+          <div class="time-unit">${minutes}<span class="label">MINUTES</span></div>
+          <div class="time-unit">${seconds}<span class="label">SECONDS</span></div>`;
+      }, 1000);
+    }
+
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const nav = document.querySelector("nav");
+    const clock = document.createElement("div");
+    clock.id = "fullscreenClock";
+    document.body.appendChild(clock);
+
+    function updateClock() {
+      setInterval(() => {
+        clock.textContent = new Date().toLocaleTimeString();
+      }, 1000);
+    }
+
+    fullscreenBtn.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.body.requestFullscreen().then(() => {
+          nav.style.display = "none";
+          clock.style.display = "block";
+          updateClock();
+        });
+      } else {
+        document.exitFullscreen().then(() => {
+          nav.style.display = "flex";
+          clock.style.display = "none";
+        });
+      }
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        nav.style.display = "flex";
+        clock.style.display = "none";
+      }
+    });
+
+    updateCountdown("revealNight", new Date("Feb 22, 2025 18:00:00 GMT-0700").getTime());
+    updateCountdown("utahRegional", new Date("Mar 12, 2025 18:00:00 GMT-0700").getTime());
+    updateCountdown("idahoRegional", new Date("Mar 25, 2025 18:00:00 GMT-0700").getTime());
+
+    animateParticle();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
